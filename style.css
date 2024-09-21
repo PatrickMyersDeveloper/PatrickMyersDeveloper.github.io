@@ -58,9 +58,23 @@
   width: fit-content;
 }
 
+.typing-animation-small {
+  font-size: 8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: .15em solid #035b9e;
+  animation: typing-small 3.5s steps(50, end), blink-caret 0.75s step-end infinite;
+  width: fit-content;
+}
+
 @keyframes typing {
   from { width: 0; }
   to { width: 100%; }
+}
+
+@keyframes typing-small {
+  from { width: 0; }
+  to { width: 75%; }
 }
 
 @keyframes blink-caret {
@@ -88,5 +102,28 @@
   @keyframes typing-small {
       from { width: 0; }
       to { width: 95%; }
+  }
+}
+
+/* Responsive styles for smaller screens */
+@media (max-width: 768px) {
+  .typing-animation-small {
+      font-size: 3.7rem;
+      animation: typing-medium 3s steps(30, end), blink-caret 0.75s step-end infinite;
+  }
+  @keyframes typing-medium {
+      from { width: 0; }
+      to { width: 95%; }
+  }
+}
+
+@media (max-width: 480px) {
+  .typing-animation-small {
+      font-size: 3rem;
+      animation: typing-small 3s steps(40, end), blink-caret 0.75s step-end infinite;
+  }
+  @keyframes typing-small {
+      from { width: 0; }
+      to { width: 90%; }
   }
 }
