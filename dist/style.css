@@ -1,0 +1,92 @@
+
+.sticky {
+    position: sticky;
+    top: 0; /* Stick to the top of the viewport */
+    z-index: 1000; /* Ensure it stays above other content */
+}
+
+#homeVideos {
+  text-align: center;
+  color: #035b9e;
+  font-size: 8em;
+}
+
+@media (max-width: 480px) {
+  #homeVideos {
+    text-align: center;
+    color: #035b9e;
+    font-size: 3em;
+  }
+}
+.text-position-container {
+  position: relative;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden; /* Ensure content doesn't overflow */
+}
+
+.background-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensure the image covers the container without distortion */
+  z-index: 1; /* Position it behind the text */
+  opacity: 0.45; /* Add some transparency to make the text stand out */ 
+  filter: grayscale();
+  transition: opacity 1s ease-in-out; /* Adjust duration as needed */
+}
+
+.text-position {
+  z-index: 2; /* Ensure the text is on top of the image */
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  /* padding-top: 17%; */
+}
+
+.typing-animation {
+  font-size: 8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  border-right: .15em solid #035b9e;
+  animation: typing 3.5s steps(50, end), blink-caret 0.75s step-end infinite;
+  width: fit-content;
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink-caret {
+  from, to { border-color: transparent; }
+  50% { border-color: #035b9e; }
+}
+
+/* Responsive styles for smaller screens */
+@media (max-width: 768px) {
+  .typing-animation {
+      font-size: 3.7rem;
+      animation: typing-medium 3s steps(30, end), blink-caret 0.75s step-end infinite;
+  }
+  @keyframes typing-medium {
+      from { width: 0; }
+      to { width: 95%; }
+  }
+}
+
+@media (max-width: 480px) {
+  .typing-animation {
+      font-size: 2.4rem;
+      animation: typing-small 2s steps(20, end), blink-caret 0.75s step-end infinite;
+  }
+  @keyframes typing-small {
+      from { width: 0; }
+      to { width: 95%; }
+  }
+}
