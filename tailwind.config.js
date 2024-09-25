@@ -18,7 +18,9 @@ module.exports = {
         customBlue: '#035b9e',
         customRed: '#b56964',
         customBlueLight: '#58A4B0'
-      }
+      },
+      filter: ['responsive'],
+      groupHover: ['responsive'],
     },
   },
   plugins: [],
