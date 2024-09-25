@@ -56,7 +56,7 @@
     </nav>
     <div class="text-position-container">
         <!-- Background image behind the typing animation -->
-        <img src="hero.jpg" id="changingHero" alt="Background Image" class="background-image filter grayscale">
+        <img src="27.jpg" id="changingHero" alt="Background Image" class="background-image filter grayscale">
         
         <!-- Typing animation text -->
         <div class="text-position">
@@ -74,7 +74,7 @@
                     picture of a time in my parents life they both held so dear. Most of them were hastily shot candids, which to me, is what made them so special. Rather than well-composed stills, 
                     they were more documentary.     
             </p>
-            <p class="text-base font-poppins text-slate-800 leading-relaxed">
+            <p id="gallery" class="text-base font-poppins text-slate-800 leading-relaxed">
                     Fast forward to the Summer between my second and third year of college, I was at a local thrift store with a friend of mine. She was browsing the shelves in the tech/electronics 
                     section when she pointed out an old camera to me. It was a black point-and-shoot film camera, like those my parents used to shoot on. Looking down on it, the word Yashica T2 
                     popped in cherry red lettering. I didn’t know it at the time, but it would become a significant object in my life. After paying the princely sum of $2.50, and special ordering a 
@@ -91,10 +91,10 @@
             </div>
             <br><br>
             <!-- PHOTO GRID STARTS HERE -->
-            <div id="gallery"class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-1 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Image 1 -->
                 <div class="relative overflow-hidden rounded-lg shadow-lg group">
-                    <img src="1.jpg" alt="Placeholder Image 1" class="w-full h-full object-cover">
+                    <img src="1.jpg" alt="Placeholder Image 1" class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-300">
                     <div class="absolute inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <span class="text-white font-bold text-xl">Amoeba Records, San Francisco, California - July 2024</span>
                     </div>
@@ -214,6 +214,6 @@
         imgElement.src = images[currentIndex]; // Update image source
     }
 
-    // Change the background image every 1.5 seconds (5000 milliseconds)
+    // Change the background image every 1.5 seconds (1500 milliseconds)
     setInterval(changeBackgroundImage, 1500);
 </script>
