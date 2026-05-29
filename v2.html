@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leave the World Behind</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
+  
+  <!-- DNS Prefetch for External Resources -->
+  <link rel="dns-prefetch" href="https://unpkg.com" />
+  <link rel="dns-prefetch" href="https://images.unsplash.com" />
+  <link rel="dns-prefetch" href="https://images.pexels.com" />
+
+  <!-- Leaflet (lazy-loaded on scroll to map section) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" media="print" onload="this.media='all'" />
+
+  <style>
+    /* ── TOKENS ── */
+    :root {
+      --bg:         #403c35;
+      --panel:      #595143;
+      --panel-soft: #8c7b5a;
+      --accent:     #bf9969;
+      --amber:      #bf9969;
+      --text:       #d9bc9a;
+      --text-muted: #bf9969;
+      --border:     rgba(217, 188, 154, 0.18);
+      --panel-border: rgba(217, 188, 154, 0.14);
+      --cream:      #f5f2ed;
+      --parchment:  rgba(217, 188, 154, 0.18);
+      --sand:       #d9bc9a;
+      --shadow:     rgba(0, 0, 0, 0.25);
+      --serif:      'Cormorant Garamond', Georgia, serif;
+      --sans:       'Jost', sans-serif;
+      --ease-out:   cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* ── RESET ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: radial-gradient(circle at top right, rgba(191, 153, 105, 0.12), transparent 18%),
+                  linear-gradient(180deg, var(--bg), #332f28 45%, #2a251f 100%);
+      color: var(--text);
+      font-family: var(--sans);
+      font-weight: 300;
+      line-height: 1.75;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+    /* ── GRAIN OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.05;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: flex-start;
+      padding: 4rem 8vw 6rem;
+      overflow: hidden;
+      box-shadow: inset 0 -1px 0 rgba(217, 188, 154, 0.15);
+    }
+
+    /* Two background image layers for smooth cross-fade */
+    .hero-bg {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100vh;
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      pointer-events: none;
+      z-index: -1;
+      transition: opacity 2.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .hero-bg-a { z-index: -2; }
+    .hero-bg-b { z-index: -3; opacity: 0; }
+
+    /* Gradient overlay */
+    header::after {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      background: linear-gradient(135deg, rgba(40, 35, 28, 0.62) 0%, rgba(30, 26, 20, 0.52) 100%),
+                  linear-gradient(to top, rgba(40, 35, 28, 0.98) 0%, rgba(40, 35, 28, 0.4) 40%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .header-content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      pointer-events: auto;
+    }
+
+    .header-eyebrow {
+      font-family: var(--sans);
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      transform: translateY(12px);
+      animation: fadeUp 0.9s var(--ease-out) 0.2s forwards;
+    }
+
+    .header-title {
+      font-family: var(--serif);
+      font-size: clamp(2.8rem, 8vw, 7.5rem);
+      font-weight: 300;
+      line-height: 0.95;
+      letter-spacing: -0.01em;
+      color: var(--cream);
+      max-width: 16ch;
+      opacity: 0;
+      transform: translateY(18px);
+      animation: fadeUp 1.1s var(--ease-out) 0.35s forwards;
+    }
+
+    .header-title em {
+      font-style: italic;
+      color: var(--amber);
+    }
+
+    .header-subtitle {
+      margin-top: 2rem;
+      font-size: 0.95rem;
+      color: rgba(217, 188, 154, 0.9);
+      letter-spacing: 0.045em;
+      max-width: 42ch;
+      opacity: 0;
+      transform: translateY(12px);
+      animation: fadeUp 0.9s var(--ease-out) 0.5s forwards;
+      line-height: 1.8;
+    }
+
+    .header-stats {
+      margin-top: 3.5rem;
+      display: flex;
+      gap: 4rem;
+      align-items: center;
+      opacity: 0;
+      transform: translateY(10px);
+      animation: fadeUp 0.9s var(--ease-out) 0.65s forwards;
+    }
+
+    .header-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .header-stat-num {
+      font-family: var(--serif);
+      font-size: 2.4rem;
+      font-weight: 300;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .header-stat-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--sand);
+    }
+
+    /* Large decorative background text */
+    .header-deco {
+      position: absolute;
+      right: 2vw;
+      bottom: 3rem;
+      font-family: var(--serif);
+      font-size: clamp(8rem, 20vw, 20rem);
+      font-weight: 300;
+      font-style: italic;
+      color: transparent;
+      -webkit-text-stroke: 1.2px rgba(217, 188, 154, 0.15);
+      line-height: 1;
+      pointer-events: none;
+      user-select: none;
+      opacity: 0;
+      z-index: 1;
+      animation: fadeIn 1.4s var(--ease-out) 0.8s forwards;
+      will-change: opacity;
+    }
+
+    /* ── HERO ROUTE OVERLAY ── */
+    .hero-route { position: absolute; left: 0; right: 0; top: 18%; width: 100%; height: 42%; pointer-events: none; overflow: visible; }
+    .route-anim { stroke-dashoffset: 0; transition: stroke-dashoffset 1.8s var(--ease-out); pointer-events: none; }
+    @media (prefers-reduced-motion: no-preference) {
+      .route-anim { animation: dash 3.8s linear infinite; }
+      @keyframes dash { to { stroke-dashoffset: -28; } }
+    }
+
+    .route-pins { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
+    .route-pin {
+      position: absolute;
+      pointer-events: auto;
+      width: 64px; height: 64px;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 2px solid rgba(217,188,154,0.18);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+      transform: translate(-50%, -50%) scale(0.98);
+      transition: transform .22s var(--ease-out), box-shadow .22s, border-color .18s;
+      background: var(--panel);
+    }
+    .route-pin img { width: 100%; height: 100%; object-fit: cover; display:block; filter: saturate(.9) contrast(1.02); }
+    .route-pin:hover, .route-pin:focus { transform: translate(-50%, -50%) scale(1.08); box-shadow: 0 18px 60px rgba(0,0,0,0.4); outline: none; border-color: var(--accent); }
+
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.4rem 8vw;
+      background: rgba(56, 50, 44, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(217, 188, 154, 0.12);
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.16);
+      mix-blend-mode: normal;
+      overflow: hidden;
+      --scroll-progress: 0%;
+    }
+
+    /* Scroll progress indicator */
+    nav::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: var(--scroll-progress);
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      transition: width 0.1s linear;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      text-decoration: none;
+      z-index: 1;
+      cursor: default;
+    }
+
+    .nav-logo-mark {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      opacity: 0.85;
+      transition: opacity 0.3s, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .nav-logo:hover .nav-logo-mark {
+      opacity: 1;
+      transform: rotate(45deg);
+    }
+
+    .nav-logo-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1;
+      gap: 0.12rem;
+    }
+
+    .nav-logo-top {
+      font-family: var(--sans);
+      font-size: 0.52rem;
+      font-weight: 500;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .nav-logo-bottom {
+      font-family: var(--serif);
+      font-size: 1.05rem;
+      font-style: italic;
+      font-weight: 300;
+      color: var(--text);
+      letter-spacing: 0.015em;
+      white-space: nowrap;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+      z-index: 1;
+    }
+
+    .nav-links a {
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(217, 188, 154, 0.98);
+      text-decoration: none;
+      transition: color 0.2s;
+      position: relative;
+      padding-bottom: 0.3rem;
+    }
+
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0%;
+      height: 1px;
+      background: var(--accent);
+      transition: width 0.3s var(--ease-out);
+    }
+
+    .nav-links a:hover {
+      color: var(--accent);
+    }
+
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+
+    /* ── SECTION WRAPPER ── */
+    section { padding: 7rem 8vw; }
+
+    .section-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-family: var(--serif);
+      font-size: clamp(2.2rem, 4vw, 3.8rem);
+      font-weight: 300;
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 3.5rem;
+    }
+
+    /* ── ABOUT SECTION ── */
+    #about {
+      background: linear-gradient(180deg, rgba(42, 37, 31, 0.98) 0%, rgba(56, 50, 44, 0.92) 100%);
+      border-top: 1px solid rgba(217, 188, 154, 0.1);
+      border-bottom: 1px solid rgba(217, 188, 154, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle grain texture echo */
+    #about::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 80% 50%, rgba(191, 153, 105, 0.07) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .about-inner {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr;
+      gap: 6rem;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .about-left {
+      position: relative;
+    }
+
+    .about-photo-frame {
+      position: relative;
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .about-photo-frame::before {
+      content: '';
+      position: absolute;
+      inset: -14px -14px 14px 14px;
+      border: 1px solid rgba(191, 153, 105, 0.22);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .about-photo-frame::after {
+      content: '';
+      position: absolute;
+      bottom: -6px; left: -6px;
+      width: 60%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+    }
+
+    .about-photo {
+      width: 100%;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      display: block;
+      filter: saturate(0.78) contrast(1.06) sepia(0.12);
+      position: relative;
+      z-index: 1;
+    }
+
+    .about-photo-placeholder {
+      width: 100%;
+      aspect-ratio: 3/4;
+      background: rgba(56, 50, 44, 0.8);
+      border: 1px dashed rgba(191, 153, 105, 0.3);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .about-photo-placeholder svg {
+      opacity: 0.3;
+    }
+
+    .about-photo-placeholder span {
+      font-size: 0.58rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(217, 188, 154, 0.4);
+    }
+
+    .about-coords {
+      position: absolute;
+      bottom: -2rem;
+      left: 0;
+      font-family: var(--sans);
+      font-size: 0.55rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(191, 153, 105, 0.45);
+    }
+
+    .about-right {
+      display: flex;
+      flex-direction: column;
+      gap: 1.6rem;
+    }
+
+    .about-pull-quote {
+      font-family: var(--serif);
+      font-size: clamp(1.55rem, 2.8vw, 2.4rem);
+      font-style: italic;
+      font-weight: 300;
+      line-height: 1.3;
+      color: var(--cream);
+      border-left: 2px solid var(--accent);
+      padding-left: 1.6rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .about-body {
+      font-size: 0.95rem;
+      line-height: 1.95;
+      color: rgba(217, 188, 154, 0.88);
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+    }
+
+    .about-divider {
+      width: 2.5rem;
+      height: 1px;
+      background: rgba(191, 153, 105, 0.45);
+      margin: 0.4rem 0;
+    }
+
+    .about-signature {
+      font-family: var(--serif);
+      font-size: 1.6rem;
+      font-style: italic;
+      font-weight: 300;
+      color: var(--accent);
+      margin-top: 0.4rem;
+      letter-spacing: 0.02em;
+    }
+
+    .about-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+      margin-top: 0.4rem;
+    }
+
+    .about-pill {
+      padding: 0.3rem 0.85rem;
+      border: 1px solid rgba(191, 153, 105, 0.25);
+      background: rgba(191, 153, 105, 0.07);
+      border-radius: 999px;
+      font-size: 0.58rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(217, 188, 154, 0.7);
+    }
+
+    @media (max-width: 860px) {
+      .about-inner {
+        grid-template-columns: 1fr;
+        gap: 3.5rem;
+      }
+      .about-photo-frame { max-width: 280px; }
+    }
+
+    @media (max-width: 640px) {
+      .about-coords { display: none; }
+    }
+
+    /* ── MAP SECTION ── */
+    #map-section {
+      background: radial-gradient(circle at top, rgba(191, 153, 105, 0.08), transparent 35%),
+                  linear-gradient(180deg, rgba(64, 60, 53, 0.96), rgba(56, 50, 44, 0.95));
+      position: relative;
+      border-top: 1px solid rgba(217, 188, 154, 0.12);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    #map-section::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--sand) 30%, var(--sand) 70%, transparent);
+    }
+
+    #travel-map {
+      width: 100%;
+      height: 700px;
+      border-radius: 2px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Leaflet custom marker */
+    .custom-pin {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--panel);
+      box-shadow: 0 0 0 3px rgba(191, 153, 105, 0.28);
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+    .custom-pin:hover { transform: scale(1.4); }
+
+    .leaflet-popup-content-wrapper {
+      background: var(--cream);
+      border-radius: 2px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(217, 188, 154, 0.18);
+      padding: 0;
+    }
+    .leaflet-popup-content {
+      margin: 0;
+      padding: 1rem 1.2rem;
+    }
+    .popup-name {
+      font-family: var(--serif);
+      font-size: 1.1rem;
+      font-style: italic;
+      color: var(--bg);
+    }
+    .popup-meta {
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--panel-soft);
+      margin-top: 0.2rem;
+    }
+    .popup-link {
+      display: inline-block;
+      margin-top: 0.6rem;
+      font-size: 0.65rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(191, 153, 105, 0.6);
+    }
+    .leaflet-popup-tip { background: var(--cream); }
+
+    /* ── DESTINATIONS SECTION ── */
+    #destinations { background: rgba(56, 50, 44, 0.88); }
+
+    .filter-bar {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-bottom: 3rem;
+      margin-top: -1.5rem;
+      background: rgba(217, 188, 154, 0.08);
+      border: 1px solid rgba(217, 188, 154, 0.18);
+      border-radius: 1.5rem;
+      padding: 1rem 1rem 0.9rem;
+    }
+
+    .filter-btn {
+      padding: 0.45rem 1.05rem;
+      font-family: var(--sans);
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      border: 1px solid rgba(217, 188, 154, 0.22);
+      background: rgba(64, 60, 53, 0.88);
+      color: var(--text);
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--bg);
+    }
+
+    /* Grid */
+    .destinations-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 2.5rem 2rem;
+    }
+
+    .dest-card {
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out);
+      background: rgba(56, 50, 44, 0.96);
+      border: 1px solid rgba(217, 188, 154, 0.14);
+      border-radius: 1.2rem;
+      overflow: hidden;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+      will-change: opacity, transform;
+      backface-visibility: hidden;
+    }
+    .dest-card.visible { opacity: 1; transform: translateY(0); }
+    .dest-card.hidden { display: none; }
+
+    .card-img-wrap {
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      background: rgba(56, 50, 44, 0.72);
+      position: relative;
+      border-bottom: 1px solid rgba(148, 124, 88, 0.12);
+    }
+
+    .card-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.7s var(--ease-out);
+      filter: saturate(0.88) contrast(1.04);
+      will-change: transform;
+      backface-visibility: hidden;
+    }
+    .dest-card:hover .card-img-wrap img { transform: scale(1.04); }
+
+    .card-img-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--serif);
+      font-size: 3rem;
+      font-style: italic;
+      color: var(--sand);
+    }
+
+    .card-tag {
+      position: absolute;
+      top: 1rem; left: 1rem;
+      padding: 0.25rem 0.7rem;
+      background: rgba(64, 60, 53, 0.95);
+      font-size: 0.58rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .card-body { padding: 1.4rem 1.5rem 1.6rem; }
+
+    .card-meta {
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.6rem;
+    }
+
+    .card-name {
+      font-family: var(--serif);
+      font-size: 1.6rem;
+      font-weight: 300;
+      line-height: 1.1;
+      color: var(--text);
+      margin-bottom: 0.7rem;
+    }
+
+    .card-excerpt {
+      font-size: 0.9rem;
+      color: rgba(217, 188, 154, 0.9);
+      line-height: 1.85;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-read-more {
+      display: inline-block;
+      margin-top: 0.9rem;
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: border-color 0.2s, color 0.2s;
+      cursor: pointer;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+      font-family: var(--sans);
+      padding: 0;
+    }
+    .card-read-more:hover { border-bottom-color: rgba(191, 153, 105, 0.75); color: var(--text); }
+
+    /* ── MODAL / LIGHTBOX ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: rgba(20, 16, 12, 0.78);
+      backdrop-filter: blur(6px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s var(--ease-out);
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+    .modal {
+      background: rgba(56, 50, 44, 0.98);
+      max-width: 760px;
+      width: 100%;
+      max-height: 90svh;
+      overflow-y: auto;
+      position: relative;
+      transform: translateY(30px) scale(0.98);
+      transition: transform 0.4s var(--ease-out);
+      border: 1px solid rgba(217, 188, 154, 0.18);
+      box-shadow: 0 32px 90px rgba(0, 0, 0, 0.28);
+      will-change: transform;
+      backface-visibility: hidden;
+    }
+    .modal-overlay.open .modal { transform: translateY(0) scale(1); }
+
+    .modal-hero {
+      width: 100%;
+      aspect-ratio: 16/7;
+      object-fit: cover;
+      display: block;
+      filter: saturate(0.88) contrast(1.04);
+    }
+
+    .modal-hero-placeholder {
+      width: 100%;
+      aspect-ratio: 16/7;
+      background: var(--parchment);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--serif);
+      font-size: 4rem;
+      font-style: italic;
+      color: var(--sand);
+    }
+
+    .modal-body { padding: 2.5rem 3rem 3rem; }
+
+    .modal-eyebrow {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.6rem;
+    }
+
+    .modal-title {
+      font-family: var(--serif);
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 300;
+      line-height: 1.05;
+      margin-bottom: 1.8rem;
+      color: var(--text);
+    }
+
+    .modal-divider {
+      width: 3rem;
+      height: 1px;
+      background: var(--accent);
+      margin-bottom: 1.8rem;
+    }
+
+    .modal-text {
+      font-size: 0.95rem;
+      color: rgba(217, 188, 154, 0.96);
+      line-height: 1.85;
+    }
+
+    .modal-gallery {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      margin-top: 2rem;
+    }
+    .modal-gallery img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      display: block;
+      filter: saturate(0.88);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      width: 2.4rem; height: 2.4rem;
+      background: rgba(56, 50, 44, 0.95);
+      border: 1px solid rgba(217, 188, 154, 0.24);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 1rem;
+      color: var(--text);
+      transition: background 0.2s;
+      z-index: 10;
+    }
+    .modal-close:hover { background: rgba(217, 188, 154, 0.12); }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 3rem 8vw;
+      border-top: 1px solid rgba(217, 188, 154, 0.14);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      background: rgba(56, 50, 44, 0.9);
+    }
+
+    .footer-brand {
+      font-family: var(--serif);
+      font-size: 1.4rem;
+      font-style: italic;
+      color: var(--text);
+    }
+
+    .footer-meta {
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(217, 188, 154, 0.85);
+      text-align: right;
+      line-height: 2;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      section { padding: 5rem 6vw; }
+      header { padding: 3rem 6vw 5rem; }
+      .hero-bg { background-attachment: scroll; }
+      .header-deco { display: none; }
+      .header-stats { gap: 2.5rem; }
+      .header-stat-num { font-size: 1.8rem; }
+      .modal-body { padding: 1.8rem; }
+      .modal-gallery { grid-template-columns: repeat(2, 1fr); }
+      footer { flex-direction: column; align-items: flex-start; }
+      .footer-meta { text-align: left; }
+      nav { padding: 1.2rem 6vw; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <span class="nav-logo">
+      <!-- Compass rose mark -->
+      <svg class="nav-logo-mark" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <circle cx="14" cy="14" r="12.5" stroke="rgba(191,153,105,0.45)" stroke-width="0.8"/>
+        <circle cx="14" cy="14" r="1.8" fill="#bf9969"/>
+        <!-- N pointer (filled) -->
+        <path d="M14 14 L12.2 6.5 L14 9.5 L15.8 6.5 Z" fill="#bf9969"/>
+        <!-- S pointer (outline) -->
+        <path d="M14 14 L12.2 21.5 L14 18.5 L15.8 21.5 Z" fill="rgba(191,153,105,0.32)"/>
+        <!-- E pointer -->
+        <path d="M14 14 L21.5 12.2 L18.5 14 L21.5 15.8 Z" fill="rgba(191,153,105,0.22)"/>
+        <!-- W pointer -->
+        <path d="M14 14 L6.5 12.2 L9.5 14 L6.5 15.8 Z" fill="rgba(191,153,105,0.22)"/>
+        <!-- Cardinal tick marks -->
+        <line x1="14" y1="2" x2="14" y2="3.5" stroke="rgba(191,153,105,0.5)" stroke-width="0.8"/>
+        <line x1="14" y1="24.5" x2="14" y2="26" stroke="rgba(191,153,105,0.3)" stroke-width="0.8"/>
+        <line x1="2" y1="14" x2="3.5" y2="14" stroke="rgba(191,153,105,0.3)" stroke-width="0.8"/>
+        <line x1="24.5" y1="14" x2="26" y2="14" stroke="rgba(191,153,105,0.3)" stroke-width="0.8"/>
+      </svg>
+      <span class="nav-logo-text">
+        <span class="nav-logo-bottom">Leave the World Behind</span>
+      </span>
+    </span>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#map-section">Map</a></li>
+      <li><a href="#destinations">Destinations</a></li>
+      <li><a href="https://linkedin.com/patrickmakesthings" target="_blank" rel="noopener noreferrer">Patrick Myers</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO BACKGROUND LAYERS (cross-fade) -->
+  <div class="hero-bg hero-bg-a" id="hero-bg-a"></div>
+  <div class="hero-bg hero-bg-b" id="hero-bg-b"></div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-content">
+      <p class="header-eyebrow">Travel Portfolio by Patrick Myers</p>
+      <h1 class="header-title">Leave the <em>World</em> Behind</h1>
+      <p class="header-subtitle">
+        A personal record of maxing out PTO, driving across continents, and discovering the stories that make the world worth exploring.
+      </p>
+      <div class="header-stats" id="stats-bar">
+        <div class="header-stat">
+          <span class="header-stat-num" id="stat-countries">0</span>
+          <span class="header-stat-label">Countries</span>
+        </div>
+        <div class="header-stat">
+          <span class="header-stat-num" id="stat-cities">0</span>
+          <span class="header-stat-label">Destinations</span>
+        </div>
+        <div class="header-stat">
+          <span class="header-stat-num" id="stat-years">0</span>
+          <span class="header-stat-label">Years Exploring</span>
+        </div>
+      </div>
+    </div>
+    <div class="header-deco" aria-hidden="true">Explore.</div>
+  </header>
+
+  <!-- ABOUT SECTION -->
+  <section id="about">
+    <div class="about-inner">
+      <div class="about-left">
+        <div class="about-photo-frame">
+          <!-- Replace src with your own photo when ready -->
+          <div class="about-photo-placeholder">
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="20" cy="15" r="7" stroke="#bf9969" stroke-width="1.2"/>
+              <path d="M4 36c0-8.837 7.163-16 16-16s16 7.163 16 16" stroke="#bf9969" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            <span>Your photo here</span>
+          </div>
+        </div>
+        <div class="about-coords">33.4484° N &nbsp;·&nbsp; 112.0740° W</div>
+      </div>
+
+      <div class="about-right">
+        <p class="section-label">The person behind the pins</p>
+        <blockquote class="about-pull-quote">
+          "The world is too interesting to stay in one place."
+        </blockquote>
+        <div class="about-divider"></div>
+        <div class="about-body">
+          <p>
+            Hi, I'm Patrick Myers — a traveler, explorer, and chronic PTO-maximizer currently based in Phoenix, Arizona. This site is my living record of everywhere I've been and every place I'm planning to go next.
+          </p>
+          <p>
+            <em style="color: var(--text); font-family: var(--serif); font-size: 1.02rem;">Leave the World Behind</em> isn't about escaping your life. It's about expanding it. Each pin on that map represents a weekend pushed to its limits, a road trip that didn't have a plan, or a flight booked on a Tuesday afternoon because the fare was too good to ignore.
+          </p>
+          <p>
+            I've been doing this for seven years across a handful of continents — from the silent forests of Upper Michigan where I grew up, to the Baltic capitals of Northern Europe, to the red-rock deserts of the American Southwest I now call home. The notes here are honest: what moved me, what surprised me, and what I'd do differently.
+          </p>
+          <p style="font-style: italic; font-family: var(--serif); font-size: 1.0rem; color: rgba(217,188,154,0.7);">
+            <!-- Add your own personal line here. Something that captures why you travel. -->
+            [Add your own personal note here.]
+          </p>
+        </div>
+        <div class="about-signature">— Patrick</div>
+        <div class="about-pills">
+          <span class="about-pill">Road trips</span>
+          <span class="about-pill">National Parks</span>
+          <span class="about-pill">Northern Europe</span>
+          <span class="about-pill">Desert Southwest</span>
+          <span class="about-pill">Slow travel</span>
+          <span class="about-pill">PTO maximalist</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAP SECTION -->
+  <section id="map-section">
+    <p class="section-label">Where I've been</p>
+    <h2 class="section-title">My Path, Mapped</h2>
+    <div id="travel-map"></div>
+  </section>
+
+  <!-- DESTINATIONS SECTION -->
+  <section id="destinations">
+    <p class="section-label">Field notes</p>
+    <h2 class="section-title">Destinations</h2>
+
+    <div class="filter-bar" id="filter-bar">
+      <button class="filter-btn active" data-continent="all">All</button>
+    </div>
+
+    <div class="destinations-grid" id="destinations-grid"></div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-brand">Leave the World Behind</div>
+    <div class="footer-meta">
+      <span>Patrick Myers</span><br>
+      <span id="footer-updated">Last updated · 2024</span>
+    </div>
+  </footer>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal" id="modal">
+      <button class="modal-close" id="modal-close" aria-label="Close">✕</button>
+      <div id="modal-inner"></div>
+    </div>
+  </div>
+
+  <!-- ── DATA + LOGIC ── -->
+  <script>
+    // ═══════════════════════════════════════════════════
+    //  HERO IMAGE CROSS-FADE
+    //  Two fixed layers (A & B) swap opacity for buttery
+    //  smooth transitions — no CSS animation hacks needed
+    // ═══════════════════════════════════════════════════
+    const heroImages = [
+      'h1.JPG',
+      'h2.jpg',
+      'h3.jpg',
+      'h4.jpg',
+      'h5.jpg',
+      'h6.jpg',
+      'h7.jpg',
+      'h9.JPG',
+      'h10.jpg'
+    ];
+
+    const bgA = document.getElementById('hero-bg-a');
+    const bgB = document.getElementById('hero-bg-b');
+
+    // Shuffle so we don't always start on h1
+    let heroIndex = Math.floor(Math.random() * heroImages.length);
+    let activeLayer = 'a'; // which layer is currently visible
+
+    function buildBg(url) {
+      return `url('${url}')`;
+    }
+
+    // Init: set both layers, show A
+    bgA.style.backgroundImage = buildBg(heroImages[heroIndex]);
+    bgA.style.opacity = '1';
+    bgB.style.opacity = '0';
+
+    function crossFadeHero() {
+      heroIndex = (heroIndex + 1) % heroImages.length;
+      const nextUrl = buildBg(heroImages[heroIndex]);
+
+      if (activeLayer === 'a') {
+        // Preload into B, then fade B in (B goes on top visually via z-index swap)
+        bgB.style.backgroundImage = nextUrl;
+        bgB.style.zIndex = '-1';
+        bgA.style.zIndex = '-2';
+        // Slight delay lets the browser paint the new image before we start fading
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            bgB.style.opacity = '1';
+            bgA.style.opacity = '0';
+          });
+        });
+        activeLayer = 'b';
+      } else {
+        bgA.style.backgroundImage = nextUrl;
+        bgA.style.zIndex = '-1';
+        bgB.style.zIndex = '-2';
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            bgA.style.opacity = '1';
+            bgB.style.opacity = '0';
+          });
+        });
+        activeLayer = 'a';
+      }
+    }
+
+    // Rotate every 9 seconds — longer dwell feels more chill
+    setInterval(crossFadeHero, 9000);
+
+    // ═══════════════════════════════════════════════════
+    //  NAV SCROLL PROGRESS & LINK ACTIVE STATE
+    // ═══════════════════════════════════════════════════
+    const nav = document.querySelector('nav');
+    const navLinks = document.querySelectorAll('.nav-links a');
+
+    window.addEventListener('scroll', () => {
+      // Update scroll progress bar
+      const scrollPercentage = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+      nav.style.setProperty('--scroll-progress', scrollPercentage + '%');
+    });
+
+    // ═══════════════════════════════════════════════════
+    //  TRAVEL DATA — edit this array to add destinations
+    //  photos: array of image URLs (use '' for placeholder)
+    // ═══════════════════════════════════════════════════
+    const destinations = [
+       {
+        id: 'phoenix-az',
+        name: 'Phoenix, AZ',
+        country: 'United States',
+        continent: 'North America',
+        date: 'Spring 2024 - Present (Current Home Base)',
+        coords: [33.4484, -112.0740],
+        excerpt: '',
+        fullText: '',
+        photos: ['https://images.unsplash.com/photo-1706403222567-06fe8d8dc93e?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'home',
+        name: 'Houghton County, MI',
+        country: 'United States',
+        continent: 'North America',
+        date: 'Mid 2000s - Fall 2019 (Home)',
+        coords: [47.1211, -88.5694],
+        excerpt: '',
+        fullText: '',
+        photos: ['https://images.unsplash.com/photo-1708034960299-aab12553b789?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'marquette-mi',
+        name: 'Marquette, MI',
+        country: 'United States',
+        continent: 'North America',
+        date: 'Fall 2020 - May 2024 (Former Home Base)',
+        coords: [46.5436, -87.3954],
+        excerpt: '',
+        fullText: '',
+        photos: ['https://images.unsplash.com/photo-1662989168288-0770bb8546aa?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8bWFycXVldHRlJTIwbWljaGlnYW58ZW58MHx8MHx8fDA%3D']
+      },
+      {
+        id: 'san-francisco',
+        name: 'San Francisco, CA',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [37.7749, -122.4194],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1554107136-57b138ea99df?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'los-angeles',
+        name: 'Los Angeles, CA',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [34.0522, -118.2437],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1572925151789-c13420b54514?q=80&w=2232&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'arches',
+        name: 'Arches National Park, UT',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [38.7331, -109.5925],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1614484564972-e37b65b5a573?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'great-smoky-mountains',
+        name: 'Great Smoky Mountains National Park, TN',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [35.6532, -83.5070],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1619574425317-aeec312b8191?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'san-antonio',
+        name: 'San Antonio, TX',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [29.4241, -98.4936],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1579053301200-93b5ef0c0b3a?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8c2FuJTIwYW50b25pb3xlbnwwfHwwfHx8MA%3D%3D']
+      },
+      {
+        id: 'sequoia',
+        name: 'Sequoia National Park, CA',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [36.4864, -118.5658],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1709943517404-635ada23e41d?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c2VxdW9pYSUyMG5hdGlvbmFsJTIwcGFya3xlbnwwfHwwfHx8MA%3D%3D']
+      },
+      {
+        id: 'springfield-il',
+        name: 'Springfield, IL',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [39.7817, -89.6501],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1642799819201-c3ccf956b013?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c3ByaW5nZmllbGQlMjBpbGxpbm9pc3xlbnwwfHwwfHx8MA%3D%3D']
+      },
+      {
+        id: 'big-thicket',
+        name: 'Big Thicket, TX',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [30.3147, -94.6711],
+        excerpt: '',
+        fullText: ``,
+        photos: ['thicket.jpg']
+      },
+      {
+        id: 'hot-springs',
+        name: 'Hot Springs National Park, AR',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [34.5215, -93.0460],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1695150396530-a9b099ab9dca?q=80&w=1674&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'mammoth-cave',
+        name: 'Mammoth Cave National Park, KY',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [37.1870, -86.1005],
+        excerpt: '',
+        fullText: ``,
+        photos: ['mammothcave.JPG']
+      },
+      {
+        id: 'monument-valley',
+        name: 'Monument Valley, AZ',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [36.9980, -110.0988],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1718154710424-d44de466c549?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'seattle-wa',
+        name: 'Seattle, WA',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [47.6062, -122.3321],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1542223616-740d5dff7f56?q=80&w=2054&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'olympic-np',
+        name: 'Olympic National Park, WA',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [47.8021, -123.6044],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1718421280242-edb3bcbcfbdd?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8b2x5bXBpYyUyMG5hdGlvbmFsJTIwcGFya3xlbnwwfHwwfHx8MA%3D%3D']
+      },
+      {
+        id: 'joshua-tree',
+        name: 'Joshua Tree National Park, CA',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [33.8734, -115.9010],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1616795795564-fc2f3b2e9723?q=80&w=2232&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'palm-desert',
+        name: 'Palm Desert, CA',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [33.7222, -116.3748],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1499401256380-61f3dc370a68?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'arcosanti',
+        name: 'Arcosanti, AZ',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [34.2483, -111.7570],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1592194323873-e93a5076a003?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'flagstaff-az',
+        name: 'Flagstaff, AZ',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [35.1983, -111.6513],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1722280227003-2f574f6f4fe5?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZmxhZ3N0YWZmJTIwYXJpem9uYXxlbnwwfHwwfHx8MA%3D%3D']
+      },
+      {
+        id: 'zion-np',
+        name: 'Zion National Park, UT',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [37.2982, -113.0263],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1467745791311-acbc96691653?q=80&w=2232&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'bryce-canyon',
+        name: 'Bryce Canyon National Park, UT',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [37.5930, -112.1871],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1493102240626-79998c21d133?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8YnJ5Y2UlMjBjYW55b24lMjBuYXRpb25hbCUyMHBhcmt8ZW58MHx8MHx8fDA%3D']
+      },
+      {
+        id: 'las-vegas',
+        name: 'Las Vegas, NV',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [36.1699, -115.1398],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1583207884889-d79abf0d0aa3?q=80&w=2084&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'grand-canyon',
+        name: 'Grand Canyon National Park, AZ',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [36.1069, -112.1129],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1535044243240-144dc3ae56a5?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fGdyYW5kJTIwY2FueW9ufGVufDB8fDB8fHww']
+      },
+      {
+        id: 'saguaro-np',
+        name: 'Saguaro National Park, AZ',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [32.2969, -111.1667],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1681407979956-417a4d2fd13e?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8c2FndWFybyUyMG5hdGlvbmFsJTIwcGFya3xlbnwwfHwwfHx8MA%3D%3D']
+      },
+      {
+        id: 'petrified-forest',
+        name: 'Petrified Forest National Park, AZ',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [34.9100, -109.7935],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1718214708361-4716f827098c?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cGV0cmlmaWVkJTIwZm9yZXN0JTIwbmF0aW9uYWwlMjBwYXJrfGVufDB8fDB8fHww']
+      },
+      {
+        id: 'white-sands',
+        name: 'White Sands National Park, NM',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [32.7795, -106.1719],
+        excerpt: '',
+        fullText: ``,
+        photos: ['white.jpg']
+      },
+      {
+        id: 'death-valley',
+        name: 'Death Valley National Park, CA',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [36.5323, -116.9325],
+        excerpt: '',
+        fullText: ``,
+        photos: ['death.JPG']
+      },
+      {
+        id: 'madison-wi',
+        name: 'Madison, WI',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [43.0731, -89.4012],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1687285363668-2bec13abad5a?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bWFkaXNvbiUyMHdpc2NvbnNpbnxlbnwwfHwwfHx8MA%3D%3D']
+      },
+      {
+        id: 'detroit-mi',
+        name: 'Detroit, MI',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [42.3314, -83.0458],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1598038748999-1174fb7d2562?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'traverse-city-mi',
+        name: 'Traverse City, MI',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [44.7631, -85.6206],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1661449082255-bb62b4859b7a?q=80&w=2232&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'petoskey-mi',
+        name: 'Petoskey, MI',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [45.3713, -84.9481],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1507154258-c81e5cca5931?q=80&w=1064&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'yosemite-ca',
+        name: 'Yosemite, CA',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [37.8651, -119.5383],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1569591803741-6246fbc6934c?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'chicago-il',
+        name: 'Chicago, IL',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [41.8781, -87.6298],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?q=80&w=2144&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'washington-dc',
+        name: 'Washington, DC',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [38.9072, -77.0369],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1617581629397-a72507c3de9e?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8d2FzaGluZ3RvbiUyMGRjfGVufDB8fDB8fHww']
+      },
+      {
+        id: 'milwaukee-wi',
+        name: 'Milwaukee, WI',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [43.0389, -87.9065],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1572854385804-33937a570b24?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bWlsd2F1a2VlJTIwd2lzY29uc2lufGVufDB8fDB8fHww']
+      },
+      {
+        id: 'minneapolis-mn',
+        name: 'Minneapolis, MN',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [44.9778, -93.2650],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1535082049017-5a7b43f3bcef?q=80&w=1674&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'sedona-az',
+        name: 'Sedona, AZ',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [34.8697, -111.7609],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1579408795979-966a21467a34?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'indianapolis-in',
+        name: 'Indianapolis, IN',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [39.7684, -86.1581],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1579031151544-529281a75b18?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'st-louis-mo',
+        name: 'St. Louis, MO',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [38.6270, -90.1994],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1675906798386-a9ed241c7ed2?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8c3QlMjBsb3VpcyUyMG1pc3NvdXJpfGVufDB8fDB8fHww']
+      },
+      {
+        id: 'jackson-ms',
+        name: 'Jackson, MS',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [32.2988, -90.1848],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1571559933328-d9b516af5bed?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8amFja3NvbiUyMG1pc3Npc3NpcHBpfGVufDB8fDB8fHww']
+      },
+      {
+        id: 'denver-co',
+        name: 'Denver, CO',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [39.7392, -104.9903],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1593621198039-c87c6f91cbb1?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'san-diego-ca',
+        name: 'San Diego, CA',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [32.7157, -117.1611],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1628482348649-e77b92762a73?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'anna-maria-island-fl',
+        name: 'Anna Maria Island, FL',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [27.5094, -82.5748],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.pexels.com/photos/18541213/pexels-photo-18541213.jpeg']
+      },
+      {
+        id: 'waco-tx',
+        name: 'Waco, TX',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [31.5493, -97.1467],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1602977430626-d168b9f1cec2?q=80&w=1988&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'el-paso-tx',
+        name: 'El Paso, TX',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [31.7619, -106.4850],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1707863313405-0a153bef3383?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'las-cruces-nm',
+        name: 'Las Cruces, NM',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [32.3199, -106.7637],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1662613508971-913aa9c7b888?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'sweden',
+        name: 'Stockholm',
+        country: 'Sweden',
+        continent: 'Europe',
+        date: 'Summer 2019',
+        coords: [59.3293, 18.0686],
+        excerpt: '',
+        fullText: '',
+        photos: ['https://images.unsplash.com/photo-1630772063386-f363836989cc?q=80&w=1035&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'finland',
+        name: 'Helsinki',
+        country: 'Finland',
+        continent: 'Europe',
+        date: 'Summer 2019',
+        coords: [60.1699, 24.9384],
+        excerpt: '',
+        fullText: '',
+        photos: ['https://images.unsplash.com/photo-1548188500-ab08449b26d7?q=80&w=2064&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'estonia',
+        name: 'Tallinn',
+        country: 'Estonia',
+        continent: 'Europe',
+        date: 'Summer 2019',
+        coords: [59.4369, 24.7536],
+        excerpt: '',
+        fullText: '',
+        photos: ['https://images.unsplash.com/photo-1709862366377-54b16f3e51f9?q=80&w=1674&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'denmark',
+        name: 'Copenhagen',
+        country: 'Denmark',
+        continent: 'Europe',
+        date: 'Summer 2019',
+        coords: [55.6761, 12.5683],
+        excerpt: '',
+        fullText: '',
+        photos: ['https://images.unsplash.com/photo-1551651767-d5ffbdd04b83?q=80&w=2016&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'ireland',
+        name: 'Dublin & Irish Countryside',
+        country: 'Ireland',
+        continent: 'Europe',
+        date: 'Fall 2025',
+        coords: [53.3498, -6.2603],
+        excerpt: '',
+        fullText: '',
+        photos: ['https://images.unsplash.com/photo-1500456759136-362ab38eec6d?q=80&w=2069&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'england',
+        name: 'London',
+        country: 'England',
+        continent: 'Europe',
+        date: 'Fall 2025',
+        coords: [51.5074, -0.1278],
+        excerpt: '',
+        fullText: '',
+        photos: ['https://images.unsplash.com/photo-1488747279002-c8523379faaa?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      }
+    ];
+
+    // ═══════════════════════════════════════════════════
+    //  STATS
+    // ═══════════════════════════════════════════════════
+    const countries = new Set(destinations.map(d => d.country)).size;
+    const cities    = destinations.length;
+    const years     = 7; // edit manually
+
+    function animateCount(el, target) {
+      let start = 0;
+      const step = Math.ceil(target / 40);
+      const t = setInterval(() => {
+        start = Math.min(start + step, target);
+        el.textContent = start;
+        if (start >= target) clearInterval(t);
+      }, 35);
+    }
+
+    const statsObs = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) {
+        animateCount(document.getElementById('stat-countries'), countries);
+        animateCount(document.getElementById('stat-cities'), cities);
+        animateCount(document.getElementById('stat-years'), years);
+        statsObs.disconnect();
+      }
+    }, { threshold: 0.5 });
+    statsObs.observe(document.getElementById('stats-bar'));
+
+    // ═══════════════════════════════════════════════════
+    //  LAZY-LOAD LEAFLET & MAP
+    // ═══════════════════════════════════════════════════
+    let mapInitialized = false;
+
+    function initMap() {
+      if (mapInitialized || typeof L === 'undefined') return;
+      mapInitialized = true;
+
+      const map = L.map('travel-map', {
+        center: [30, 0],
+        zoom: 2,
+        zoomControl: true,
+        scrollWheelZoom: false
+      });
+
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19
+      }).addTo(map);
+
+      destinations.forEach(dest => {
+        const icon = L.divIcon({
+          html: '<div class="custom-pin"></div>',
+          className: '',
+          iconSize: [12, 12],
+          iconAnchor: [6, 6]
+        });
+
+        const marker = L.marker(dest.coords, { icon }).addTo(map);
+
+        marker.bindPopup(`
+          <div class="popup-name">${dest.name}</div>
+          <div class="popup-meta">${dest.country} · ${dest.date}</div>
+          <a class="popup-link" onclick="scrollToCard('${dest.id}'); return false;" href="#">View notes →</a>
+        `);
+      });
+    }
+
+    function lazyLoadLeaflet() {
+      if (mapInitialized) return;
+      
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+      script.onload = initMap;
+      document.head.appendChild(script);
+    }
+
+    const mapSectionEl = document.getElementById('map-section');
+    if (mapSectionEl) {
+      const mapObserver = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting) {
+          lazyLoadLeaflet();
+          mapObserver.disconnect();
+        }
+      }, { threshold: 0.1 });
+      mapObserver.observe(mapSectionEl);
+    }
+
+    // ═══════════════════════════════════════════════════
+    //  MAP
+    // ═══════════════════════════════════════════════════
+
+    function scrollToCard(id) {
+      const card = document.getElementById('card-' + id);
+      if (card) {
+        const offset = card.getBoundingClientRect().top + window.scrollY - 120;
+        window.scrollTo({ top: offset, behavior: 'smooth' });
+        card.style.outline = '2px solid var(--amber)';
+        card.style.outlineOffset = '6px';
+        setTimeout(() => { card.style.outline = ''; card.style.outlineOffset = ''; }, 2000);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════
+    //  FILTER BAR
+    // ═══════════════════════════════════════════════════
+    const continents = [...new Set(destinations.map(d => d.continent))].sort();
+    const filterBar  = document.getElementById('filter-bar');
+
+    continents.forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'filter-btn';
+      btn.dataset.continent = c;
+      btn.textContent = c;
+      filterBar.appendChild(btn);
+    });
+
+    filterBar.addEventListener('click', e => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const val = btn.dataset.continent;
+      document.querySelectorAll('.dest-card').forEach(card => {
+        const show = val === 'all' || card.dataset.continent === val;
+        card.classList.toggle('hidden', !show);
+      });
+    });
+
+    // ═══════════════════════════════════════════════════
+    //  RENDER CARDS
+    // ═══════════════════════════════════════════════════
+    const grid = document.getElementById('destinations-grid');
+
+    destinations.forEach((dest, i) => {
+      const card = document.createElement('div');
+      card.className = 'dest-card';
+      card.id = 'card-' + dest.id;
+      card.dataset.continent = dest.continent;
+      card.style.transitionDelay = `${(i % 6) * 0.08}s`;
+
+      const heroPhoto = dest.photos && dest.photos[0]
+        ? `<img src="${dest.photos[0]}" alt="${dest.name}" loading="lazy" />`
+        : `<div class="card-img-placeholder">${dest.name.charAt(0)}</div>`;
+
+      card.innerHTML = `
+        <div class="card-img-wrap">
+          ${heroPhoto}
+          <span class="card-tag">${dest.continent}</span>
+        </div>
+        <div class="card-body">
+          <div class="card-meta">${dest.country} &nbsp;·&nbsp; ${dest.date}</div>
+          <div class="card-name">${dest.name}</div>
+          <div class="card-excerpt">${dest.excerpt}</div>
+          <button class="card-read-more" data-id="${dest.id}">Read the notes →</button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    // Intersection observer for card reveal
+    const cardObs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          cardObs.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.dest-card').forEach(c => cardObs.observe(c));
+
+    // ═══════════════════════════════════════════════════
+    //  MODAL
+    // ═══════════════════════════════════════════════════
+    const overlay = document.getElementById('modal-overlay');
+    const modalInner = document.getElementById('modal-inner');
+
+    function openModal(id) {
+      const dest = destinations.find(d => d.id === id);
+      if (!dest) return;
+
+      const heroPhoto = dest.photos && dest.photos[0]
+        ? `<img class="modal-hero" src="${dest.photos[0]}" alt="${dest.name}" />`
+        : `<div class="modal-hero-placeholder">${dest.name}</div>`;
+
+      const galleryPhotos = dest.photos && dest.photos.length > 1
+        ? `<div class="modal-gallery">${dest.photos.slice(1).map(p => `<img src="${p}" alt="" loading="lazy" />`).join('')}</div>`
+        : '';
+
+      const bodyText = dest.fullText
+        .split('\n\n')
+        .map(p => `<p style="margin-bottom:1.2rem">${p.trim()}</p>`)
+        .join('');
+
+      modalInner.innerHTML = `
+        ${heroPhoto}
+        <div class="modal-body">
+          <div class="modal-eyebrow">${dest.country} &nbsp;·&nbsp; ${dest.continent} &nbsp;·&nbsp; ${dest.date}</div>
+          <h2 class="modal-title">${dest.name}</h2>
+          <div class="modal-divider"></div>
+          <div class="modal-text">${bodyText}</div>
+          ${galleryPhotos}
+        </div>
+      `;
+
+      overlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      overlay.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    document.getElementById('modal-close').addEventListener('click', closeModal);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+    grid.addEventListener('click', e => {
+      const btn = e.target.closest('.card-read-more');
+      if (btn) openModal(btn.dataset.id);
+    });
+
+    // ═══════════════════════════════════════════════════
+    //  FOOTER DATE
+    // ═══════════════════════════════════════════════════
+    document.getElementById('footer-updated').textContent =
+      'Last updated · ' + new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  </script>
+</body>
+</html>
