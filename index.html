@@ -1142,11 +1142,14 @@
       * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
     }
 
+    /* Hide mobile typewriter on desktop */
+    .mobile-typewriter { display: none; }
+
     /* ── RESPONSIVE ── */
     @media (max-width: 640px) {
       section { padding: 5rem 6vw; }
-      header { padding: 3rem 6vw 5rem; }
-      .hero-bg { background-attachment: scroll; }
+      header { padding: 15vh 6vw 5rem; justify-content: center; }
+      .hero-bg { background-attachment: scroll; will-change: auto; transform: none !important; }
       .header-deco { display: none; }
       .header-stats { gap: 2.5rem; }
       .header-stat-num { font-size: 1.8rem; }
@@ -1156,6 +1159,32 @@
       .footer-meta { text-align: left; }
       nav { padding: 1.2rem 6vw; }
       .nav-links { display: none; }
+
+      /* Mobile typewriter above the title */
+      .mobile-typewriter {
+        display: block;
+        font-family: var(--serif);
+        font-size: clamp(4.5rem, 22vw, 7rem);
+        font-weight: 300;
+        font-style: italic;
+        color: transparent;
+        -webkit-text-stroke: 1.5px rgba(217, 188, 154, 1);
+        line-height: 1;
+        margin-bottom: 1.8rem;
+        min-height: 1em;
+        opacity: 0;
+        transform: translateY(12px);
+        animation: fadeUp 0.9s var(--ease-out) 0.2s forwards;
+        user-select: none;
+      }
+      .mobile-typewriter-cursor {
+        display: inline-block;
+        color: rgba(217, 188, 154, 1);
+        -webkit-text-stroke: 0;
+        animation: cursorBlink 0.75s step-end infinite;
+        margin-left: 2px;
+        font-style: normal;
+      }
     }
   </style>
 </head>
@@ -1208,6 +1237,7 @@
   <!-- HEADER -->
   <header>
     <div class="header-content">
+      <p class="mobile-typewriter" aria-hidden="true"><span id="mobile-deco-word"></span><span class="mobile-typewriter-cursor">|</span></p>
       <p class="header-eyebrow">Travel Portfolio by Patrick Myers</p>
       <h1 class="header-title">Leave the <em>World</em> Behind</h1>
       <p class="header-subtitle">
@@ -2296,7 +2326,9 @@
       }
       const words = wordPool;
       const el      = document.getElementById('deco-word');
-      if (!el) return;
+      const elMobile = document.getElementById('mobile-deco-word');
+      // At least one target must exist
+      if (!el && !elMobile) return;
 
       let wordIdx   = 0;
       let charIdx   = 0;
@@ -2306,12 +2338,17 @@
       const TYPE_SPEED  = 95;
       const DEL_SPEED   = 60;
 
+      function setWord(text) {
+        if (el) el.textContent = text;
+        if (elMobile) elMobile.textContent = text;
+      }
+
       function tick() {
         const current = words[wordIdx];
 
         if (!deleting) {
           charIdx++;
-          el.textContent = current.slice(0, charIdx);
+          setWord(current.slice(0, charIdx));
           if (charIdx === current.length) {
             deleting = true;
             setTimeout(tick, PAUSE_FULL);
@@ -2320,7 +2357,7 @@
           setTimeout(tick, TYPE_SPEED);
         } else {
           charIdx--;
-          el.textContent = current.slice(0, charIdx);
+          setWord(current.slice(0, charIdx));
           if (charIdx === 0) {
             deleting = false;
             wordIdx  = (wordIdx + 1) % words.length;
@@ -2332,7 +2369,7 @@
       }
 
       // Start after initial text is set
-      el.textContent = '';
+      setWord('');
       setTimeout(tick, 1200);
     })();
 
@@ -2351,7 +2388,11 @@
           // Calculate column index by comparing offsetLeft buckets
           const col = Math.round(card.offsetLeft / (card.offsetWidth + 32));
           card.style.transitionDelay = `${col * 0.07}s`;
-          card.style.transform = 'translateY(28px) translateX(' + (col % 2 === 0 ? '-6px' : '6px') + ')';
+          // No diagonal drift on mobile — just vertical
+          const isMobile = window.innerWidth <= 640;
+          card.style.transform = isMobile
+            ? 'translateY(28px)'
+            : 'translateY(28px) translateX(' + (col % 2 === 0 ? '-6px' : '6px') + ')';
         });
       });
       obs.observe(gridEl, { childList: true });
