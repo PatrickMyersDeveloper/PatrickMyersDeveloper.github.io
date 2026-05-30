@@ -11,6 +11,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
   
+  <!-- Preload first hero image at highest browser priority -->
+  <link rel="preload" as="image" href="h1.JPG" fetchpriority="high" />
+
   <!-- DNS Prefetch for External Resources -->
   <link rel="dns-prefetch" href="https://unpkg.com" />
   <link rel="dns-prefetch" href="https://images.unsplash.com" />
@@ -91,6 +94,7 @@
       pointer-events: none;
       z-index: -1;
       transition: opacity 2.2s cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: opacity;
     }
     .hero-bg-a { z-index: -2; }
     .hero-bg-b { z-index: -3; opacity: 0; }
@@ -239,7 +243,7 @@
     nav {
       position: fixed;
       top: 0; left: 0; right: 0;
-      z-index: 100;
+      z-index: 1000;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -455,7 +459,7 @@
       aspect-ratio: 3/4;
       object-fit: cover;
       display: block;
-      filter: saturate(0.52) contrast(1.08) sepia(0.32) brightness(0.82);
+      filter: none;
       position: relative;
       z-index: 1;
     }
@@ -611,19 +615,78 @@
 
     /* ── MAP SECTION ── */
     #map-section {
-      background: radial-gradient(circle at top, rgba(191, 153, 105, 0.08), transparent 35%),
-                  linear-gradient(180deg, rgba(64, 60, 53, 0.96), rgba(56, 50, 44, 0.95));
+      background: linear-gradient(180deg, rgba(38, 33, 27, 0.99), rgba(50, 44, 37, 0.98));
       position: relative;
       border-top: 1px solid rgba(217, 188, 154, 0.12);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      overflow: hidden;
     }
 
+    /* Top rule */
     #map-section::before {
       content: '';
       position: absolute;
       top: 0; left: 0; right: 0;
       height: 1px;
       background: linear-gradient(90deg, transparent, var(--sand) 30%, var(--sand) 70%, transparent);
+      z-index: 1;
+    }
+
+    /* ── MILES STRIP ── */
+    .map-meta-strip {
+      display: flex;
+      align-items: center;
+      gap: 2.5rem;
+      margin-bottom: 2.8rem;
+    }
+
+    .map-miles-block {
+      display: flex;
+      align-items: baseline;
+      gap: 0.6rem;
+      line-height: 1;
+    }
+
+    .map-miles-num {
+      font-family: var(--serif);
+      font-size: clamp(3rem, 5vw, 4.8rem);
+      font-weight: 300;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .map-miles-unit {
+      font-family: var(--sans);
+      font-size: 0.6rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(217, 188, 154, 0.5);
+      padding-bottom: 0.3rem;
+    }
+
+    .map-miles-context {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      padding-left: 2.5rem;
+      border-left: 1px solid rgba(191, 153, 105, 0.2);
+    }
+
+    .map-miles-context-line {
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(217, 188, 154, 0.38);
+      line-height: 1.6;
+    }
+
+    .map-miles-context-line span {
+      color: rgba(217, 188, 154, 0.65);
+    }
+
+    @media (max-width: 560px) {
+      .map-meta-strip { flex-direction: column; align-items: flex-start; gap: 1.2rem; }
+      .map-miles-context { border-left: none; padding-left: 0; border-top: 1px solid rgba(191,153,105,0.2); padding-top: 1rem; }
     }
 
     .map-wrap {
@@ -861,31 +924,24 @@
       color: rgba(217, 188, 154, 0.9);
       line-height: 1.85;
       display: -webkit-box;
-      -webkit-line-clamp: 3;
-      line-clamp: 3;
+      -webkit-line-clamp: 5;
+      line-clamp: 5;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
 
     .card-read-more {
       display: inline-block;
-      margin-top: 0.9rem;
+      margin-top: 1rem;
       font-size: 0.6rem;
       letter-spacing: 0.18em;
       text-transform: uppercase;
       color: var(--accent);
-      text-decoration: none;
-      border-bottom: 1px solid transparent;
-      transition: border-color 0.2s, color 0.2s;
-      cursor: pointer;
-      background: none;
-      border-top: none;
-      border-left: none;
-      border-right: none;
       font-family: var(--sans);
-      padding: 0;
+      transition: color 0.2s;
+      pointer-events: none;
     }
-    .card-read-more:hover { border-bottom-color: rgba(191, 153, 105, 0.75); color: var(--text); }
+    .dest-card:hover .card-read-more { color: var(--text); }
 
     /* ── MODAL / LIGHTBOX ── */
     .modal-overlay {
@@ -975,17 +1031,32 @@
 
     .modal-gallery {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
       gap: 0.5rem;
       margin-top: 2rem;
     }
     .modal-gallery img {
       width: 100%;
-      aspect-ratio: 1;
       object-fit: cover;
       display: block;
       filter: saturate(0.88);
     }
+
+    /* 1 extra photo — full width landscape */
+    .modal-gallery--1 { grid-template-columns: 1fr; }
+    .modal-gallery--1 img { aspect-ratio: 16/7; }
+
+    /* 2 extra photos — side by side */
+    .modal-gallery--2 { grid-template-columns: 1fr 1fr; }
+    .modal-gallery--2 img { aspect-ratio: 4/3; }
+
+    /* 3 extra photos — one wide + two below */
+    .modal-gallery--3 { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; }
+    .modal-gallery--3 img:first-child { grid-column: 1 / -1; aspect-ratio: 16/7; }
+    .modal-gallery--3 img:not(:first-child) { aspect-ratio: 4/3; }
+
+    /* 4 extra photos — 2×2 grid */
+    .modal-gallery--4 { grid-template-columns: 1fr 1fr; }
+    .modal-gallery--4 img { aspect-ratio: 4/3; }
 
     .modal-close {
       position: absolute;
@@ -1012,7 +1083,9 @@
       align-items: flex-end;
       flex-wrap: wrap;
       gap: 1.5rem;
-      background: rgba(56, 50, 44, 0.9);
+      background: #2a251f;
+      position: relative;
+      z-index: 10;
     }
 
     .footer-brand {
@@ -1023,10 +1096,10 @@
     }
 
     .footer-meta {
-      font-size: 0.6rem;
-      letter-spacing: 0.15em;
+      font-size: 0.85rem;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: rgba(217, 188, 154, 0.85);
+      color: var(--cream);
       text-align: right;
       line-height: 2;
     }
@@ -1055,6 +1128,15 @@
     @keyframes fadeIn {
       to { opacity: 1; }
     }
+
+    /* ── MAP PIN PULSE ── */
+    @keyframes pinPulse {
+      0%   { box-shadow: 0 0 0 0 rgba(191,153,105,0.55), 0 0 0 3px rgba(191,153,105,0.28); }
+      70%  { box-shadow: 0 0 0 10px rgba(191,153,105,0), 0 0 0 3px rgba(191,153,105,0.28); }
+      100% { box-shadow: 0 0 0 0 rgba(191,153,105,0), 0 0 0 3px rgba(191,153,105,0.28); }
+    }
+    .custom-pin { animation: pinPulse 2.4s ease-out infinite; }
+    .custom-pin:hover { animation: none; transform: scale(1.4); }
 
     @media (prefers-reduced-motion: reduce) {
       * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
@@ -1141,8 +1223,8 @@
           <span class="header-stat-label">Destinations</span>
         </div>
         <div class="header-stat">
-          <span class="header-stat-num" id="stat-years">0</span>
-          <span class="header-stat-label">Years Exploring</span>
+          <span class="header-stat-num" id="stat-continents">0</span>
+          <span class="header-stat-label">Continents</span>
         </div>
       </div>
     </div>
@@ -1167,34 +1249,34 @@
             <span class="manifest-label">States visited</span>
           </div>
           <div class="manifest-row">
-            <span class="manifest-val">Toyota RAV4</span>
-            <span class="manifest-label">Vehicle of choice</span>
+            <span class="manifest-val">16</span>
+            <span class="manifest-label">National Parks Visited</span>
           </div>
           <div class="manifest-row">
-            <span class="manifest-val">Bourdain</span>
-            <span class="manifest-label">Biggest influence</span>
+            <span class="manifest-val">Toyota RAV4</span>
+            <span class="manifest-label">Vehicle of choice</span>
           </div>
         </div>
       </div>
 
       <div class="about-right">
-        <p class="section-label">The person behind the pins</p>
+        <p class="section-label">Allow Me to Introduce Myself</p>
         <blockquote class="about-pull-quote">
            Patrick Myers
         </blockquote>
         <div class="about-divider"></div>
         <div class="about-body">
           <p>
-            My story starts in an obscure corner of the U.S. most aren't very familiar with: the Upper Peninsula of Michigan — the U.P. This section of Michigan makes up about 40% of the state's land, but only 3% of its population. You'd be right to assume it's largely rural and untouched. The rare travel excursions of my childhood consisted mostly of driving through nearby Midwestern states and visiting extended family in metro Detroit. Growing up there left me sheltered — and itching to experience the spectrum of places I'd only ever seen on TV.
+            My story starts in an obscure corner of the U.S. most aren't very familiar with: the Upper Peninsula of Michigan (often referred to as the U.P.). For those unfamiliar with it, this section of Michigan makes up about 40% of the state's land, but only 3% of the population. Given that fact, you'd be correct to assume this area is largely rural and untouched. The rare travel excursions of my childhood consisted mostly of driving around nearby Midwestern states like Wisconsin and Minnesota, and going to visit my extended family in metro Detroit. Growing up in that environment left me sheltered and itching to experience the spectrum of places I had only seen on TV or heard about in passing.
           </p>
           <p>
-            From a very young age, I had a fascination with the people and places that existed beyond the world I knew. I credit this to a small handful of people, namely my parents and a person my dad also greatly admires: Anthony Bourdain. My parents were a bit more worldly than most local Yoopers — between the two of them they had spent years living in places like Portland, Detroit, Los Angeles, and Boston. They brought broader perspectives on people, culture, and food into an impossibly small town. Bourdain was introduced to me through weeknight cable reruns of <em style="font-family: var(--serif); color: var(--text);">No Reservations</em> and eventually <em style="font-family: var(--serif); color: var(--text);">Parts Unknown</em>. I was always in awe of the destinations he found himself in — Vietnam, Bhutan, the Democratic Republic of Congo, Lebanon. The way he framed culture as a combination of history, food, geography, and politics was critical for how I began to see the world.
+            From a very young age, I had a fascination with the people and places that existed beyond the world I knew. I credit this to a small handful of people, namely my parents and a person my dad also greatly admires: Anthony Bourdain. Let me start with Mom and Dad. My parents were a bit more worldly than most of the local Yoopers (natives of the U.P) that were abundant in my neighborhood. Between the two of them, they had spent a number of years living in places like Portland, Detroit, Los Angeles, and Boston. Because of this, they had broader perspectives and experiences surrounding people, culture, and food than most others in my impossibly small town. Bourdain on the other hand was introduced to me by my father through weeknight cable reruns of <em style="font-family: var(--serif); color: var(--text);">No Reservations</em> and eventually <em style="font-family: var(--serif); color: var(--text);">Parts Unknown</em>. As I got a bit older, I began reading portions of his writing as well. I was always in such awe of the destinations Bourdain found himself in, largely because I had never had any other frame of reference for these places. He made a career of showcasing corners of the world often forgotten or unknown by the vast majority. I was deeply fascinated by places like Vietnam, Bhutan, Democratic Republic of Congo, and Lebanon. The way Bourdain showcased culture as a combination of history, food, geography, and politics was critical for how I began to see the world. For all of those years spent growing up in Michigan, I yearned for a future where I'd be able to absorb all of these offbeat destinations firsthand.
           </p>
           <p>
-            After high school, I started travelling as much as I could. I went abroad for the first time in 2019 — Finland, Denmark, Estonia, and Sweden. Eventually I was fortunate enough to meet some of my best friends and travel partners during my college years in Marquette, MI. Driving around the U.S. in my Toyota RAV4 became a staple of our lives.
+            After high school, I started travelling as much as I could. I went abroad for the first time in 2019, travelling to Finland, Denmark, Estonia, and Sweden. Eventually, I was fortunate enough to meet some of my best friends and travel partners during my college years in Marquette, MI. Driving around the U.S. in my Toyota RAV4 became a staple of our lives.
           </p>
           <p>
-            Today, I spend most of my spare time and money furthering that goal. Seeing interesting places, talking to strangers, sharing meals, and seeking a deeper understanding of who people are has been the greatest pleasure of my young life. It's with the purpose of remembering those people, the food we shared, and the perspective they gave me that I created this project. With that, I present <em style="font-family: var(--serif); color: var(--text);">Leave the World Behind.</em>
+            Today, I spend most of my spare time and money furthering my goal of exploring. Gaining the opportunity to see so many interesting places, talk to strangers, share meals, and seek a deeper understanding of who they are has been the greatest pleasure of my young life. It's with the purpose of remembering those people, the meals we shared, and the perspective they gave me that I have created this project. With that, I present <em style="font-family: var(--serif); color: var(--text);">Leave the World Behind.</em>
           </p>
         </div>
       </div>
@@ -1204,7 +1286,18 @@
   <!-- MAP SECTION -->
   <section id="map-section">
     <p class="section-label">Where I've been</p>
-    <h2 class="section-title">My Path, Mapped</h2>
+    <h2 class="section-title">A Long Road, Mapped</h2>
+    <div class="map-meta-strip">
+      <div class="map-miles-block">
+        <span class="map-miles-num" id="map-stat-miles">0</span>
+        <span class="map-miles-unit">miles<br>estimated</span>
+      </div>
+      <div class="map-miles-context">
+        <p class="map-miles-context-line">From the U.P. to everywhere else —</p>
+        <p class="map-miles-context-line"><span id="map-stat-dest">—</span> destinations across <span id="map-stat-countries">—</span> countries</p>
+        <p class="map-miles-context-line">Across <span id="map-stat-continents">—</span> continents · roughly <span>~35×</span> the length of Route 66</p>
+      </div>
+    </div>
     <div class="map-wrap"><div id="travel-map"></div></div>
   </section>
 
@@ -1267,14 +1360,26 @@
       return `url('${url}')`;
     }
 
+    // Preload an image into the browser cache without displaying it
+    function preloadImage(url) {
+      const img = new Image();
+      img.src = url;
+    }
+
     // Init: set both layers, show A
     bgA.style.backgroundImage = buildBg(heroImages[heroIndex]);
     bgA.style.opacity = '1';
     bgB.style.opacity = '0';
 
+    // Preload the second image immediately so it's ready for the first transition
+    preloadImage(heroImages[(heroIndex + 1) % heroImages.length]);
+
     function crossFadeHero() {
       heroIndex = (heroIndex + 1) % heroImages.length;
       const nextUrl = buildBg(heroImages[heroIndex]);
+
+      // Preload the image after next so it's always one step ahead
+      preloadImage(heroImages[(heroIndex + 1) % heroImages.length]);
 
       if (activeLayer === 'a') {
         // Preload into B, then fade B in (B goes on top visually via z-index swap)
@@ -1909,31 +2014,61 @@
     ];
 
     // ═══════════════════════════════════════════════════
-    //  STATS
+    //  STATS — all derived from destinations array
     // ═══════════════════════════════════════════════════
-    const countries = new Set(destinations.map(d => d.country)).size;
-    const cities    = destinations.length;
-    const years     = 7; // edit manually
+    const countries   = new Set(destinations.map(d => d.country)).size;
+    const cities      = destinations.length;
+    const continents  = new Set(destinations.map(d => d.continent)).size;
 
     function animateCount(el, target) {
       let start = 0;
-      const step = Math.ceil(target / 40);
+      const duration = 2200;
+      const steps = 60;
+      const interval = duration / steps;
+      const step = Math.ceil(target / steps);
       const t = setInterval(() => {
         start = Math.min(start + step, target);
         el.textContent = start;
         if (start >= target) clearInterval(t);
-      }, 35);
+      }, interval);
     }
 
-    const statsObs = new IntersectionObserver(entries => {
+    // Hero is always visible on load — just run after a short delay
+    // so the entrance animations have started first
+    setTimeout(() => {
+      animateCount(document.getElementById('stat-countries'),  countries);
+      animateCount(document.getElementById('stat-cities'),     cities);
+      animateCount(document.getElementById('stat-continents'), continents);
+    }, 900);
+
+    // ── MAP META STRIP ──
+    const ESTIMATED_MILES = 22000;
+    const mapStatMilesEl = document.getElementById('map-stat-miles');
+    const mapStatDestEl  = document.getElementById('map-stat-dest');
+    const mapStatCtryEl  = document.getElementById('map-stat-countries');
+    const mapStatContEl  = document.getElementById('map-stat-continents');
+
+    function animateMiles(el, target) {
+      let start = 0;
+      const step = Math.ceil(target / 60);
+      const t = setInterval(() => {
+        start = Math.min(start + step, target);
+        el.textContent = '~' + start.toLocaleString();
+        if (start >= target) { el.textContent = '~' + target.toLocaleString(); clearInterval(t); }
+      }, 28);
+    }
+
+    const mapMetaObs = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting) {
-        animateCount(document.getElementById('stat-countries'), countries);
-        animateCount(document.getElementById('stat-cities'), cities);
-        animateCount(document.getElementById('stat-years'), years);
-        statsObs.disconnect();
+        animateMiles(mapStatMilesEl, ESTIMATED_MILES);
+        animateCount(mapStatDestEl,  destinations.length);
+        animateCount(mapStatCtryEl,  countries);
+        animateCount(mapStatContEl,  continents);
+        mapMetaObs.disconnect();
       }
-    }, { threshold: 0.5 });
-    statsObs.observe(document.getElementById('stats-bar'));
+    }, { threshold: 0.25 });
+    const mapMetaStrip = document.querySelector('.map-meta-strip');
+    if (mapMetaStrip) mapMetaObs.observe(mapMetaStrip);
 
     // ═══════════════════════════════════════════════════
     //  LAZY-LOAD LEAFLET & MAP
@@ -2013,10 +2148,10 @@
     // ═══════════════════════════════════════════════════
     //  FILTER BAR
     // ═══════════════════════════════════════════════════
-    const continents = [...new Set(destinations.map(d => d.continent))].sort();
+    const continentList = [...new Set(destinations.map(d => d.continent))].sort();
     const filterBar  = document.getElementById('filter-bar');
 
-    continents.forEach(c => {
+    continentList.forEach(c => {
       const btn = document.createElement('button');
       btn.className = 'filter-btn';
       btn.dataset.continent = c;
@@ -2046,11 +2181,15 @@
       card.className = 'dest-card';
       card.id = 'card-' + dest.id;
       card.dataset.continent = dest.continent;
+      card.dataset.id = dest.id;
       card.style.transitionDelay = `${(i % 6) * 0.08}s`;
 
       const heroPhoto = dest.photos && dest.photos[0]
         ? `<img src="${dest.photos[0]}" alt="${dest.name}" loading="lazy" />`
         : `<div class="card-img-placeholder">${dest.name.charAt(0)}</div>`;
+
+      const IPSUM = `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.`;
+      const excerptText = dest.excerpt && dest.excerpt.trim() ? dest.excerpt : IPSUM;
 
       card.innerHTML = `
         <div class="card-img-wrap">
@@ -2060,8 +2199,8 @@
         <div class="card-body">
           <div class="card-meta">${dest.country} &nbsp;·&nbsp; ${dest.date}</div>
           <div class="card-name">${dest.name}</div>
-          <div class="card-excerpt">${dest.excerpt}</div>
-          <button class="card-read-more" data-id="${dest.id}">Read the notes →</button>
+          <div class="card-excerpt">${excerptText}</div>
+          <span class="card-read-more" aria-hidden="true">Read the notes →</span>
         </div>
       `;
       grid.appendChild(card);
@@ -2089,15 +2228,24 @@
       const dest = destinations.find(d => d.id === id);
       if (!dest) return;
 
-      const heroPhoto = dest.photos && dest.photos[0]
-        ? `<img class="modal-hero" src="${dest.photos[0]}" alt="${dest.name}" />`
+      const photos = (dest.photos || []).filter(Boolean).slice(0, 5);
+
+      const heroPhoto = photos[0]
+        ? `<img class="modal-hero" src="${photos[0]}" alt="${dest.name}" />`
         : `<div class="modal-hero-placeholder">${dest.name}</div>`;
 
-      const galleryPhotos = dest.photos && dest.photos.length > 1
-        ? `<div class="modal-gallery">${dest.photos.slice(1).map(p => `<img src="${p}" alt="" loading="lazy" />`).join('')}</div>`
-        : '';
+      // Gallery: photos 2–5, layout varies by count
+      let galleryHTML = '';
+      if (photos.length > 1) {
+        const extra = photos.slice(1);
+        const cls = `modal-gallery modal-gallery--${extra.length}`;
+        galleryHTML = `<div class="${cls}">${extra.map(p => `<img src="${p}" alt="" loading="lazy" />`).join('')}</div>`;
+      }
 
-      const bodyText = dest.fullText
+      const IPSUM_FULL = `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n\nSed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.`;
+
+      const rawText = dest.fullText && dest.fullText.trim() ? dest.fullText : IPSUM_FULL;
+      const bodyText = rawText
         .split('\n\n')
         .map(p => `<p style="margin-bottom:1.2rem">${p.trim()}</p>`)
         .join('');
@@ -2109,7 +2257,7 @@
           <h2 class="modal-title">${dest.name}</h2>
           <div class="modal-divider"></div>
           <div class="modal-text">${bodyText}</div>
-          ${galleryPhotos}
+          ${galleryHTML}
         </div>
       `;
 
@@ -2127,8 +2275,8 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
     grid.addEventListener('click', e => {
-      const btn = e.target.closest('.card-read-more');
-      if (btn) openModal(btn.dataset.id);
+      const card = e.target.closest('.dest-card');
+      if (card) openModal(card.dataset.id);
     });
 
     // ═══════════════════════════════════════════════════
@@ -2140,7 +2288,13 @@
     //  DECO TYPEWRITER — cycles Drive / Fly / Walk
     // ═══════════════════════════════════════════════════
     (function() {
-      const words   = ['Wander', 'Seek', 'Linger', 'Drive', 'Fly'];
+      const wordPool = ['Linger', 'Fly', 'Drive', 'Walk', 'Seek', 'Embark', 'Impulse', 'Talk', 'Learn', 'Listen', 'Share', 'Experience', 'Look', 'Meander', 'Delve'];
+      // Fisher-Yates shuffle so order is random on every page load
+      for (let i = wordPool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [wordPool[i], wordPool[j]] = [wordPool[j], wordPool[i]];
+      }
+      const words = wordPool;
       const el      = document.getElementById('deco-word');
       if (!el) return;
 
@@ -2180,6 +2334,27 @@
       // Start after initial text is set
       el.textContent = '';
       setTimeout(tick, 1200);
+    })();
+
+    // ═══════════════════════════════════════════════════
+    //  2. DESTINATION CARD STAGGER — drift in from below
+    //     (enhances existing IntersectionObserver reveal)
+    // ═══════════════════════════════════════════════════
+    (function() {
+      // Override transition delay per column position, not just index mod
+      const gridEl = document.getElementById('destinations-grid');
+      if (!gridEl) return;
+      const obs = new MutationObserver(() => {
+        const cards = [...gridEl.querySelectorAll('.dest-card:not([data-stagger])')];
+        cards.forEach(card => {
+          card.dataset.stagger = '1';
+          // Calculate column index by comparing offsetLeft buckets
+          const col = Math.round(card.offsetLeft / (card.offsetWidth + 32));
+          card.style.transitionDelay = `${col * 0.07}s`;
+          card.style.transform = 'translateY(28px) translateX(' + (col % 2 === 0 ? '-6px' : '6px') + ')';
+        });
+      });
+      obs.observe(gridEl, { childList: true });
     })();
 
   </script>
