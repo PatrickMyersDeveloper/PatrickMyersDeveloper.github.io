@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet" />
   
   <!-- Preload first hero image at highest browser priority -->
-  <link rel="preload" as="image" href="h1.JPG" fetchpriority="high" />
+  <link rel="preload" as="image" href="h1.jpeg" fetchpriority="high" />
 
   <!-- DNS Prefetch for External Resources -->
   <link rel="dns-prefetch" href="https://unpkg.com" />
@@ -693,7 +693,12 @@
       position: relative;
       border-radius: 2px;
       overflow: hidden;
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+      box-shadow: 
+        0 1px 0 rgba(168, 91, 47, 0.3) inset,
+        0 12px 40px rgba(0, 0, 0, 0.12);
+      border: 1px solid rgba(168, 91, 47, 0.2);
+      outline: 8px solid rgba(168, 91, 47, 0.08);
+      outline-offset: -1px;
     }
 
     /* Warm amber tint overlay — mix-blend-mode reaches into Leaflet's tile layers */
@@ -701,7 +706,7 @@
       content: '';
       position: absolute;
       inset: 0;
-      background: rgba(120, 80, 30, 0.22);
+      background: rgba(168, 91, 47, 0.06);
       mix-blend-mode: multiply;
       pointer-events: none;
       z-index: 400;
@@ -1385,22 +1390,20 @@
     //  Two fixed layers (A & B) swap opacity for buttery
     //  smooth transitions — no CSS animation hacks needed
     // ═══════════════════════════════════════════════════
-    const heroImages = [
-      'h1.JPG',
-      'h2.jpg',
-      'h3.jpg',
-      'h4.jpg',
-      'h5.jpg',
-      'h6.jpg',
-      'h7.jpg',
-      'h9.JPG',
-      'h10.jpg'
-    ];
+    const heroImages = Array.from({ length: 12 }, (_, index) => `h${index + 1}.jpeg`);
+
+    function getRandomHeroIndex(excludeIndex) {
+      let nextIndex = excludeIndex;
+      while (nextIndex === excludeIndex) {
+        nextIndex = Math.floor(Math.random() * heroImages.length);
+      }
+      return nextIndex;
+    }
 
     const bgA = document.getElementById('hero-bg-a');
     const bgB = document.getElementById('hero-bg-b');
 
-    // Shuffle so we don't always start on h1
+    // Pick a random starting hero image, then randomize every transition
     let heroIndex = Math.floor(Math.random() * heroImages.length);
     let activeLayer = 'a'; // which layer is currently visible
 
@@ -1423,7 +1426,7 @@
     preloadImage(heroImages[(heroIndex + 1) % heroImages.length]);
 
     function crossFadeHero() {
-      heroIndex = (heroIndex + 1) % heroImages.length;
+      heroIndex = getRandomHeroIndex(heroIndex);
       const nextUrl = buildBg(heroImages[heroIndex]);
 
       // Preload the image after next so it's always one step ahead
@@ -1595,7 +1598,7 @@
         coords: [30.3147, -94.6711],
         excerpt: '',
         fullText: ``,
-        photos: ['thicket.jpg']
+        photos: ['thicket.JPG']
       },
       {
         id: 'hot-springs',
@@ -2058,6 +2061,17 @@
         excerpt: '',
         fullText: '',
         photos: ['https://images.unsplash.com/photo-1488747279002-c8523379faaa?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
+      },
+      {
+        id: 'austin-tx',
+        name: 'Austin, TX',
+        country: 'United States',
+        continent: 'North America',
+        date: '',
+        coords: [30.2672, -97.7431],
+        excerpt: '',
+        fullText: ``,
+        photos: ['https://images.unsplash.com/photo-1601579112934-17ac2aa86292?q=80&w=2068&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D']
       }
     ];
 
